@@ -1,0 +1,139 @@
+{
+  "info": {
+    "name": "VaultPass Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "GET Public Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/public/message",
+              "host": ["{{base_url}}"],
+              "path": ["api", "public", "message"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\"message\": \"This route is public\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"Ada Lovelace\", \"email\": \"ada@test.com\", \"password\": \"Password123!\", \"role\": \"user\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"ada@test.com\", \"password\": \"Password123!\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Protected",
+      "item": [
+        {
+          "name": "GET User Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Moderator",
+      "item": [
+        {
+          "name": "GET Reports",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/moderator/reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "moderator", "reports"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "DELETE User",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/admin/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "user", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Promote User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/admin/promote/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "promote", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:5000"},
+    {"key": "jwt_token", "value": ""},
+    {"key": "user_id", "value": ""}
+  ]
+}
