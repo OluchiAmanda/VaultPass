@@ -1,0 +1,195 @@
+{
+  "info": {
+    "name": "VaultPass Backend - Full API",
+    "description": "All endpoints. Passwords hashed with bcryptjs in User model. JWT expiry: 1h. Account lock: 5 fails in 10min = 15min lock.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Public",
+      "item": [
+        {
+          "name": "GET Public Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/public/message"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {},
+              "status": "OK",
+              "code": 200,
+              "body": "{\"message\": \"This route is public\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Auth - bcryptjs hashing",
+      "item": [
+        {
+          "name": "POST Sign Up",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ada Lovelace\",\n  \"email\": \"ada@vaultpass.com\",\n  \"password\": \"MyStrongPass123!\",\n  \"role\": \"user\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/sign-up"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "body": "{\n  \"_id\": \"66f...\n  \"fullName\": \"Ada Lovelace\",\n  \"email\": \"ada@vaultpass.com\",\n  \"role\": \"user\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIs...\"\n}"
+            },
+            {
+              "name": "400 Email Exists",
+              "body": "{\"message\": \"Email already exists\"}"
+            }
+          ]
+        },
+        {
+          "name": "POST Sign In",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ada@vaultpass.com\",\n  \"password\": \"MyStrongPass123!\"\n}"
+            },
+            "url": "{{baseUrl}}/api/auth/sign-in"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if(res.token){ pm.collectionVariables.set('token', res.token); pm.collectionVariables.set('userId', res._id); }"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\n  \"_id\": \"66f...\",\n  \"fullName\": \"Ada Lovelace\",\n  \"email\": \"ada@vaultpass.com\",\n  \"role\": \"user\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIs...\"\n}"
+            },
+            {
+              "name": "401 Wrong Password",
+              "body": "{\"message\": \"Invalid credentials\"}"
+            },
+            {
+              "name": "423 Account Locked",
+              "body": "{\"message\": \"Account locked. Try again later.\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. User - Protected",
+      "item": [
+        {
+          "name": "GET Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/user/profile"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\n  \"_id\": \"66f...\",\n  \"fullName\": \"Ada Lovelace\",\n  \"email\": \"ada@vaultpass.com\",\n  \"role\": \"user\",\n  \"createdAt\": \"2026-05-30T...\"\n}"
+            },
+            {
+              "name": "401 No Token",
+              "body": "{\"message\": \"Not authorized, no token\"}"
+            },
+            {
+              "name": "401 Token Expired",
+              "body": "{\"message\": \"Token invalid or expired\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Moderator - RBAC",
+      "item": [
+        {
+          "name": "GET Reports",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/moderator/reports"
+          },
+          "response": [
+            {
+              "name": "200 OK - Moderator/Admin",
+              "body": "{\"message\": \"Moderator data accessed\"}"
+            },
+            {
+              "name": "403 Forbidden - User",
+              "body": "{\"message\": \"Forbidden: insufficient role\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Admin - RBAC + Logging",
+      "item": [
+        {
+          "name": "DELETE User by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/admin/user/{{userId}}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"message\": \"User deleted\"}"
+            },
+            {
+              "name": "400 Cannot Delete Self",
+              "body": "{\"message\": \"Admins cannot delete themselves\"}"
+            },
+            {
+              "name": "404 Not Found",
+              "body": "{\"message\": \"User not found\"}"
+            }
+          ]
+        },
+        {
+          "name": "POST Promote User to Moderator",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": "{{baseUrl}}/api/admin/promote/{{userId}}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"message\": \"ada@vaultpass.com promoted to moderator\"}"
+            },
+            {
+              "name": "400 Cannot Promote Admin",
+              "body": "{\"message\": \"Cannot promote an admin\"}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:3000"},
+    {"key": "token", "value": ""},
+    {"key": "userId", "value": ""}
+  ]
+}
